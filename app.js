@@ -36,7 +36,7 @@ app.use(function(req, res, next){
 // dummy database
 
 var users = {
-  tj: { name: 'tj' }
+  dave: { name: 'dave' }
 };
 
 // when you create a user, generate a salt
@@ -45,8 +45,8 @@ var users = {
 hash('foobar', function(err, salt, hash){
   if (err) throw err;
   // store the salt & hash in the "db"
-  users.tj.salt = salt;
-  users.tj.hash = hash;
+  users.dave.salt = salt;
+  users.dave.hash = hash;
 });
 
 
@@ -114,7 +114,7 @@ app.post('/login', function(req, res){
     } else {
       req.session.error = 'Authentication failed, please check your '
         + ' username and password.'
-        + ' (use "tj" and "foobar")';
+        + ' (use "dave" and "foobar")';
       res.redirect('login');
     }
   });
