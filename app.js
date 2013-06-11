@@ -2,17 +2,36 @@
  * Module dependencies.
  */
 
-var express = require('express')
-  , hash = require('./pass').hash;
+var express = require('express'),
+	mongoose = require('mongoose'),
+	hash = require('./pass').hash;
 
 var app = module.exports = express();
 
 // config
 
 var port = process.env.PORT || 5000;
+var mongo_url = process.env.MONGOLAB_URI || 
+	process.env.MONGOHQ_URL || 
+	'mongodb://localhost/HelloMongoose';
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
+
+// db
+
+mongoose.connect(mongo_url);
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function callback () {
+  console.log('good!');
+});
+
+var User = mongoose.model('User',mongoose.Schema({
+	name: { type: String, required: true, index: { unique: true } },
+	password: { type: String, required: true },
+	salt: {type: String}
+}));
 
 // middleware
 
@@ -33,20 +52,24 @@ app.use(function(req, res, next){
   next();
 });
 
-// dummy database
-
-var users = {
-  dave: { name: 'dave' }
-};
-
 // when you create a user, generate a salt
 // and hash the password ('foobar' is the pass here)
 
 hash('foobar', function(err, salt, hash){
   if (err) throw err;
   // store the salt & hash in the "db"
-  users.dave.salt = salt;
-  users.dave.hash = hash;
+
+	var dave = new User({
+		name: 'dave',
+		password: hash,
+		salt: salt
+	});
+	dave.save(function (err, user) {
+		if (err) 
+		{
+			console.log(err);
+		}
+	});
 });
 
 
@@ -54,17 +77,25 @@ hash('foobar', function(err, salt, hash){
 
 function authenticate(name, pass, fn) {
   if (!module.parent) console.log('authenticating %s:%s', name, pass);
-  var user = users[name];
+	User.find({ name: name }, function(error,data){
+		if(error)
+		{
+			console.log(error);
+		}
+		else
+		{
+			hash(pass, data[0].salt, function(err, hash){
+		    	if (err) return fn(err);
+		    	if (hash === data[0].password) return fn(null, data[0]);
+		    	fn(new Error('invalid password'));
+		  	});
+		}
+	});
   // query the db for the given username
-  if (!user) return fn(new Error('cannot find user'));
+
   // apply the same algorithm to the POSTed password, applying
   // the hash against the pass / salt, if there is a match we
   // found the user
-  hash(pass, user.salt, function(err, hash){
-    if (err) return fn(err);
-    if (hash == user.hash) return fn(null, user);
-    fn(new Error('invalid password'));
-  })
 }
 
 function restrict(req, res, next) {
