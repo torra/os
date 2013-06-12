@@ -4,7 +4,8 @@
 
 var express = require('express'),
 	mongoose = require('mongoose'),
-	hash = require('./pass').hash;
+	hash = require('./pass').hash,
+	index = require('./routes/index');
 
 var app = module.exports = express();
 
@@ -52,29 +53,6 @@ app.use(function(req, res, next){
   next();
 });
 
-// when you create a user, generate a salt
-// and hash the password ('foobar' is the pass here)
-
-hash('foobar', function(err, salt, hash){
-  if (err) throw err;
-  // store the salt & hash in the "db"
-
-	var dave = new User({
-		name: 'dave',
-		password: hash,
-		salt: salt
-	});
-	dave.save(function (err, user) {
-		if (err) 
-		{
-			console.log(err);
-		}
-	});
-});
-
-
-// Authenticate using our plain-object database of doom!
-
 function authenticate(name, pass, fn) {
   if (!module.parent) console.log('authenticating %s:%s', name, pass);
 	User.find({ name: name }, function(error,data){
@@ -107,9 +85,7 @@ function restrict(req, res, next) {
   }
 }
 
-app.get('/', function(req, res){
-  res.redirect('login');
-});
+app.get('/',index.index);
 
 app.get('/restricted', restrict, function(req, res){
   res.send('Wahoo! restricted area, click to <a href="/logout">logout</a>');
@@ -124,7 +100,7 @@ app.get('/logout', function(req, res){
 });
 
 app.get('/login', function(req, res){
-  res.render('login');
+  res.render('login',{title: 'Login'});
 });
 
 app.post('/login', function(req, res){
@@ -149,6 +125,57 @@ app.post('/login', function(req, res){
       res.redirect('login');
     }
   });
+});
+
+app.get('/createAccount', function(req, res){
+	res.render('createAccount',{title: 'Create Account'});
+});
+
+function createUser(userName, password, passwordRepeat, callback){
+	if(password !== passwordRepeat) {
+		callback({message: 'Passwords do not match'});
+	} else {
+		User.find({ name: userName }, function(error,data){
+			if(error) {
+				callback(error);
+			} else if(data.length > 0){
+				callback({message: 'User name is taken'});
+			} else {
+				hash(password, function(err, salt, hash){
+					if (err) {
+						console.log(err);
+						callback(err);
+					}
+				  // store the salt & hash in the "db"
+
+					var user = new User({
+						name: userName,
+						password: hash,
+						salt: salt
+					});
+					user.save(function (err, user) {
+						if (err) 
+						{
+							console.log(err);
+							callback(err);
+						}
+					});
+					callback();
+				});
+			}
+		});
+	}
+}
+
+app.post('/createAccount', function(req, res){
+	createUser(req.body.username, req.body.password, req.body.passwordRepeat, function(error){
+		if(error) {
+			req.session.error = error.message ? error.message : 'Failed to create account!';
+			res.redirect('createAccount');
+		} else {
+			res.redirect('login');
+		}
+	});
 });
 
 if (!module.parent) {
