@@ -1,5 +1,5 @@
 {
-  "name": "application-name",
+  "name": "open_sourcer",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "express": "3.1.0",
     "ejs": "*",
     "less-middleware": "*",
-	"mongoose": "3.6.11"
+	"mongoose": "3.6.11",
+    "requirejs": "2.1.6"
   }
 }

@@ -4,44 +4,50 @@
  * Module dependencies.
  */
 
-var crypto = require('crypto');
+define(['crypto'],
+    function(crypto){
+        /**
+         * Bytesize.
+         */
 
-/**
- * Bytesize.
- */
+        var len = 128;
 
-var len = 128;
+        /**
+         * Iterations. ~300ms
+         */
 
-/**
- * Iterations. ~300ms
- */
+        var iterations = 12000;
 
-var iterations = 12000;
+        /**
+         * Hashes a password with optional `salt`, otherwise
+         * generate a salt for `pass` and invoke `fn(err, salt, hash)`.
+         *
+         * @param {String} password to hash
+         * @param {String} optional salt
+         * @param {Function} callback
+         * @api public
+         */
 
-/**
- * Hashes a password with optional `salt`, otherwise
- * generate a salt for `pass` and invoke `fn(err, salt, hash)`.
- *
- * @param {String} password to hash
- * @param {String} optional salt
- * @param {Function} callback
- * @api public
- */
+        function hash(pwd, salt, fn) {
+            if (3 == arguments.length) {
+                crypto.pbkdf2(pwd, salt, iterations, len, function(err, hash){
+                    fn(err, (new Buffer(hash, 'binary')).toString('base64'));
+                });
+            } else {
+                fn = salt;
+                crypto.randomBytes(len, function(err, salt){
+                    if (err) return fn(err);
+                    salt = salt.toString('base64');
+                    crypto.pbkdf2(pwd, salt, iterations, len, function(err, hash){
+                        if (err) return fn(err);
+                        fn(null, salt, (new Buffer(hash, 'binary')).toString('base64'));
+                    });
+                });
+            }
+        }
 
-exports.hash = function (pwd, salt, fn) {
-  if (3 == arguments.length) {
-    crypto.pbkdf2(pwd, salt, iterations, len, function(err, hash){
-      fn(err, (new Buffer(hash, 'binary')).toString('base64'));
-    });
-  } else {
-    fn = salt;
-    crypto.randomBytes(len, function(err, salt){
-      if (err) return fn(err);
-      salt = salt.toString('base64');
-      crypto.pbkdf2(pwd, salt, iterations, len, function(err, hash){
-        if (err) return fn(err);
-        fn(null, salt, (new Buffer(hash, 'binary')).toString('base64'));
-      });
-    });
-  }
-};
+        return {
+            hash: hash
+        };
+    }
+);
