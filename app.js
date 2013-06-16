@@ -6,10 +6,9 @@ requirejs.config({
     nodeRequire: require
 });
 
-requirejs(['express','mongoose','pass','routes/index','models/user','controllers/user'],
-    function(express,mongoose,pass,index,User,UserController){
+requirejs(['express','mongoose','routes/index','models/user','controllers/user'],
+    function(express,mongoose,index,User,UserController){
         var app = express();
-        var hash = pass.hash;
 // config
 
         var port = process.env.PORT || 5000;
@@ -57,6 +56,8 @@ requirejs(['express','mongoose','pass','routes/index','models/user','controllers
             }
         }
 
+        //set up routes
+
         app.get('/',index.index);
 
         app.get('/restricted', restrict, function(req, res){
@@ -87,8 +88,8 @@ requirejs(['express','mongoose','pass','routes/index','models/user','controllers
                         req.session.user = user;
                         req.session.success = 'Authenticated as ' + user.name
                             + ' click to <a href="/logout">logout</a>. '
-                            + ' You may now access <a href="/restricted">/restricted</a>.';
-                        res.redirect('back');
+                            + ' You may now access <a href="/profile">/profile</a>.';
+                        res.redirect('profile/' + user.name);
                     });
                 } else {
                     req.session.error = 'Authentication failed, please check your '
@@ -114,8 +115,28 @@ requirejs(['express','mongoose','pass','routes/index','models/user','controllers
             });
         });
 
-        app.get('/viewUser/:user', function(req, res){
-            res.render('userDetails',{user: req.params.user,title: 'viewing a user'});
+        app.get('/profile/:user', function(req, res){
+            User.find({name: req.params.user}, function(err, data){
+                if(err) {
+                    //TODO
+                } else if(data.length !== 1) {
+                    //TODO
+                } else {
+                    res.render('profile',{user: data[0].name, github_user: data[0].github_name,title: 'viewing a user'});
+                }
+            });
+        });
+
+        app.put('/profile/:user', function(req, res){
+            UserController.updateUserGithubAccount(req.params.user, req.body.github_user, function(error,user){
+                if(error) {
+                    req.session.error = error.message ? error.message : 'Failed to update profile!';
+                    res.redirect('profile/' + req.params.user);
+                } else {
+                    res.json({user: user.name, github_user: user.github_name});
+//                    res.render('profile',{user: req.params.user, github_user: req.body.github_user,title: 'viewing a user'});
+                }
+            });
         });
 
         if (!module.parent) {

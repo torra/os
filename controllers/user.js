@@ -52,9 +52,28 @@ define(['models/user','pass'],
             }
         }
 
+        function updateUserGithubAccount(userName, githubAccount, callback) {
+            User.findOne({ name: userName }, function(error,user){
+                if(error) {
+                    callback(error);
+                } else if(!user) {
+                    callback({message: 'Error updating profile'});
+                } else {
+                    user.github_name = githubAccount;
+                    user.save(function(err, saved) {
+                        if(err) {
+                            callback(err);
+                        }
+                        callback(null,saved);
+                    });
+                }
+            });
+        }
+
         return {
             authenticate: authenticate,
-            createUser: createUser
+            createUser: createUser,
+            updateUserGithubAccount: updateUserGithubAccount
         }
     }
 );

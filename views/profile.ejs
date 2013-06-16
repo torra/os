@@ -1,0 +1,59 @@
+<% include head %>
+<div>
+    <label>github user</label>
+    <input id="new_github_account" type="text"/>
+    <button id="update_github">Submit</button>
+</div>
+<div id="github_stats">
+
+</div>
+<script type="text/javascript">
+(function(){
+    var userName = arguments[0],
+        githubUser = arguments[1];
+    function getGithubStuff(github_user) {
+        $.getJSON('https://api.github.com/users/' + github_user + '/repos')
+            .done(function(data){
+                var html = '<div>user "' + userName + '" has ' + data.length + ' repos</div>';
+                html += '<div><h2>repo titles</h2>';
+                $(data).each(function(index,object){
+                    html += '<div>' + object.full_name + '</div>';
+                });
+                $('#github_stats').html(html);
+            }).fail(function(jqxhr, status, errorMessage){
+                var html = '<div>';
+                if(errorMessage === 'Not Found'){
+                    html += 'User "' + github_user + '" not found';
+                }
+                else {
+                    html += 'An unknown error has occurred';
+                }
+                html += '</div>';
+                $('#github_stats').html(html);
+            });
+    }
+
+    $('#update_github').on('click',function(){
+        $.ajax({
+            url: '/profile/' + userName,
+            type: 'PUT',
+            dataType: 'json',
+            data: {
+                "user": userName,
+                "github_user": $('#new_github_account').val()
+            }
+        })
+        .done(function(data){
+            getGithubStuff(data.github_user);
+        }).fail(function(jqxhr, status, errorMessage){
+            console.log(status);
+        });
+
+        return false;
+    });
+
+    getGithubStuff(arguments[1]);
+})('<%- user %>','<%- github_user %>')
+</script>
+
+<% include foot %>
