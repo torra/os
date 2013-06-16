@@ -6,17 +6,10 @@ requirejs.config({
     nodeRequire: require
 });
 
-requirejs(['express','mongoose','pass','routes/index','models/user'],
-    function(express,mongoose,pass,index,User){
-        //var express = require('express'),
-//	mongoose = require('mongoose'),
-//	hash = require('./pass').hash,
-//	index = require('./routes/index'),
-//    User = require('./models/user');
-
+requirejs(['express','mongoose','pass','routes/index','models/user','controllers/user'],
+    function(express,mongoose,pass,index,User,UserController){
         var app = express();
         var hash = pass.hash;
-
 // config
 
         var port = process.env.PORT || 5000;
@@ -37,7 +30,7 @@ requirejs(['express','mongoose','pass','routes/index','models/user'],
         });
 
 // middleware
-
+        app.use(express.logger());
         app.use(express.bodyParser());
         app.use(express.cookieParser('shhhh, very secret'));
         app.use(express.session());
@@ -54,24 +47,6 @@ requirejs(['express','mongoose','pass','routes/index','models/user'],
             if (msg) res.locals.message = '<p class="msg success">' + msg + '</p>';
             next();
         });
-
-        function authenticate(name, pass, fn) {
-            if (!module.parent) console.log('authenticating %s:%s', name, pass);
-            User.find({ name: name }, function(error,data){
-                if(error)
-                {
-                    console.log(error);
-                }
-                else
-                {
-                    hash(pass, data[0].salt, function(err, hash){
-                        if (err) return fn(err);
-                        if (hash === data[0].password) return fn(null, data[0]);
-                        fn(new Error('invalid password'));
-                    });
-                }
-            });
-        }
 
         function restrict(req, res, next) {
             if (req.session.user) {
@@ -101,7 +76,7 @@ requirejs(['express','mongoose','pass','routes/index','models/user'],
         });
 
         app.post('/login', function(req, res){
-            authenticate(req.body.username, req.body.password, function(err, user){
+            UserController.authenticate(req.body.username, req.body.password, function(err, user){
                 if (user) {
                     // Regenerate session when signing in
                     // to prevent fixation
@@ -128,44 +103,8 @@ requirejs(['express','mongoose','pass','routes/index','models/user'],
             res.render('createAccount',{title: 'Create Account'});
         });
 
-        function createUser(userName, password, passwordRepeat, callback){
-            if(password !== passwordRepeat) {
-                callback({message: 'Passwords do not match'});
-            } else {
-                User.find({ name: userName }, function(error,data){
-                    if(error) {
-                        callback(error);
-                    } else if(data.length > 0){
-                        callback({message: 'User name is taken'});
-                    } else {
-                        hash(password, function(err, salt, hash){
-                            if (err) {
-                                console.log(err);
-                                callback(err);
-                            }
-                            // store the salt & hash in the "db"
-
-                            var user = new User({
-                                name: userName,
-                                password: hash,
-                                salt: salt
-                            });
-                            user.save(function (err, user) {
-                                if (err)
-                                {
-                                    console.log(err);
-                                    callback(err);
-                                }
-                            });
-                            callback();
-                        });
-                    }
-                });
-            }
-        }
-
         app.post('/createAccount', function(req, res){
-            createUser(req.body.username, req.body.password, req.body.passwordRepeat, function(error){
+            UserController.createUser(req.body.username, req.body.password, req.body.passwordRepeat, function(error){
                 if(error) {
                     req.session.error = error.message ? error.message : 'Failed to create account!';
                     res.redirect('createAccount');

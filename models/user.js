@@ -8,6 +8,8 @@ define(['mongoose'],
             salt: {type: String}
         }));
 
+        User
+
         return User;
     }
 );
