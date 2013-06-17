@@ -41,7 +41,7 @@
             <div>github repos for "{{github_name}}"</div>
             <ul>
                 {{#each repo in github_repos}}
-                    <li>{{repo.full_name}}</li>
+                    <li>{{repo.full_name}}, {{repo.forks_count}} forks</li>
                 {{/each}}
             </ul>
         </script>

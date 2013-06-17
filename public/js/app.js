@@ -2,7 +2,7 @@ App = Ember.Application.create();
 
 App.Router.map(function() {
     this.resource('user',function(){
-        this.route('index',{ path: '/user/:username' });
+        this.route('index',{ path: '/:username' });
     });
 });
 
@@ -39,7 +39,8 @@ App.UserIndexRoute = Em.Route.extend({
             .done(function(data){
                 controller.set('github_repos',Em.A(data.map(function(object){
                     return Em.Object.create({
-                        full_name: object.full_name
+                        full_name: object.full_name,
+                        forks_count: object.forks
                     });
                 })));
             }).fail(function(jqxhr, status, errorMessage){
