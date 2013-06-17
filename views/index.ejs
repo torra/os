@@ -1,18 +1,49 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/css/main.css' />
-    <script src="/js/libs/jquery-1.9.1.js"></script>
-    <script src="/js/libs/handlebars-1.0.0-rc.4.js"></script>
-    <script src="/js/libs/ember-1.0.0-rc.5.js"></script>
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-	<div>
-		<a href="/login">Log in</a>
-		<a href="/createAccount">Create account</a>
-	</div>
-  </body>
+    <head>
+        <title><%= title %></title>
+        <link rel='stylesheet' href='/css/main.css' />
+        <script src="/js/libs/jquery-1.9.1.js"></script>
+        <script src="/js/libs/handlebars-1.0.0-rc.4.js"></script>
+        <script src="/js/libs/ember-1.0.0-rc.5.js"></script>
+        <script src="/js/app.js"></script>
+    </head>
+    <body>
+        <script type="text/x-handlebars">
+            <div class="navbar">
+                <div class="navbar-inner">
+                    <a class="brand" href="#">open sourcerer</a>
+                    <form class="navbar-form pull-right">
+                        {{view Ember.TextField
+                            valueBinding="username"
+                            }}
+                        {{view Ember.TextField
+                            type="password"
+                            valueBinding="password"}}
+                        <button class="btn btn-primary" {{action "login"}}>Log In</button>
+                    </form>
+                </div>
+            </div>
+
+            {{outlet}}
+        </script>
+
+        <script type="text/x-handlebars" data-template-name="index">
+            <div class="hero-unit">
+                <h1>Open Sourcerer</h1>
+                <p>
+                    <button class="btn btn-success btn-large">Sign Up</button>
+                </p>
+            </div>
+        </script>
+        <script type="text/x-handlebars" data-template-name="user/index">
+            <div id="error_message">{{errorMessage}}</div>
+            <div>github repos for "{{github_name}}"</div>
+            <ul>
+                {{#each repo in github_repos}}
+                    <li>{{repo.full_name}}</li>
+                {{/each}}
+            </ul>
+        </script>
+    </body>
 </html>

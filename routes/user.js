@@ -14,9 +14,9 @@ define(['controllers/user','models/user'],
                 });
             });
 
-            expressApp.get('/login', function(req, res){
-                res.render('login',{title: 'Login'});
-            });
+//            expressApp.get('/login', function(req, res){
+//                res.render('login',{title: 'Login'});
+//            });
 
             expressApp.post('/login', function(req, res){
                 UserController.authenticate(req.body.username, req.body.password, function(err, user){
@@ -28,16 +28,25 @@ define(['controllers/user','models/user'],
                             // in the session store to be retrieved,
                             // or in this case the entire user object
                             req.session.user = user;
-                            req.session.success = 'Authenticated as ' + user.name
-                                + ' click to <a href="/logout">logout</a>. '
-                                + ' You may now access <a href="/profile">/profile</a>.';
-                            res.redirect('profile/' + user.name);
+//                            req.session.success = 'Authenticated as ' + user.name
+//                                + ' click to <a href="/logout">logout</a>. '
+//                                + ' You may now access <a href="/profile">/profile</a>.';
+//                            res.redirect('profile/' + user.name);
+                            res.json({
+                                status: 0,
+                                username: user.name,
+                                github_name: user.github_name
+                            });
                         });
                     } else {
-                        req.session.error = 'Authentication failed, please check your '
-                            + ' username and password.'
-                            + ' (use "dave" and "foobar")';
-                        res.redirect('login');
+//                        req.session.error = 'Authentication failed, please check your '
+//                            + ' username and password.'
+//                            + ' (use "dave" and "foobar")';
+//                        res.redirect('login');
+                        res.json({
+                            status: 1,
+                            message: 'Authentication failed'
+                        });
                     }
                 });
             });
