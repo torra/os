@@ -1,7 +1,7 @@
 define([],
     function(){
         function index(req, res){
-            res.render('index', { title: 'Open Sourcer' });
+            res.render('index', { title: 'Open Sourcerer' });
         }
 
         return {
