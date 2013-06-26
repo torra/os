@@ -1,0 +1,11 @@
+<div id="error_message">{{errorMessage}}</div>
+{{#if github_name}}
+    <div>github repos for "{{github_name}}"</div>
+    <ul>
+        {{#each repo in github_repos}}
+            <li>{{repo.full_name}}, {{repo.forks_count}} forks</li>
+        {{/each}}
+    </ul>
+{{else}}
+    <button {{action "authenticateGithub"}}>Add Github Account</button>
+{{/if}}

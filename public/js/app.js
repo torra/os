@@ -1,7 +1,13 @@
 App = Ember.Application.create();
 
+App.Auth = Ember.Auth.create({
+    signInEndPoint: '/sign-in',
+    signOutEndPoint: '/sign-out'
+});
+
 App.Router.map(function() {
     this.resource('user',function(){
+        this.route('create');
         this.route('index',{ path: '/:username' });
     });
 });
@@ -18,7 +24,7 @@ App.ApplicationController = Em.Controller.extend({
     login: function() {
         var self = this;
         $.ajax({
-            url: '/login',
+            url: '/sign-in',
             type: 'POST',
             dataType: 'json',
             data: {
@@ -26,12 +32,29 @@ App.ApplicationController = Em.Controller.extend({
                 password: this.get('password')
             }
         }).done(function(data){
-            self.transitionToRoute('user.index',Em.Object.create(data));
+            if(data.status !== 0) {
+                alert('login failed!');
+            }
+            else {
+                self.transitionToRoute('user.index',Em.Object.create(data));
+            }
         }).fail(function(jqxhr,status,message){
             alert('login failed!');
         });
     }
 });
+
+App.IndexController = Em.Controller.extend({
+    createAccount: function() {
+        this.transitionToRoute('user.create');
+    }
+});
+
+//App.UserRoute = Em.Route.extend({
+//    setupController: function(model,controller) {
+//
+//    }
+//});
 
 App.UserIndexRoute = Em.Route.extend({
     setupController: function(model,controller) {
@@ -46,10 +69,40 @@ App.UserIndexRoute = Em.Route.extend({
             }).fail(function(jqxhr, status, errorMessage){
                 controller.set('errorMessage','unable to find github repos for user ' + model.get('github_name'));
             });
+    },
+
+    authenticateGithub: function() {
+        console.log('hi');
     }
 });
 
-App.UserController = Em.Controller.extend({
+App.UserCreateRoute = Em.Route.extend({
+
+});
+
+App.UserCreateController = Em.Controller.extend({
+    username: null,
+    password1: null,
+    password2: null,
+    createAccount: function() {
+        $.ajax({
+            url: '/createAccount',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                username: this.get('username'),
+                password: this.get('password1'),
+                passwordRepeat: this.get('password2')
+            }
+        }).done(function(data){
+            console.log('good');
+        }).fail(function(jqxhr, status, errorMessage){
+            console.log('bad');
+        });
+    }
+});
+
+App.UserIndexController = Em.Controller.extend({
     errorMessage: null,
     github_repos: null
 });

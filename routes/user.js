@@ -6,7 +6,7 @@ define(['controllers/user','models/user'],
     function(UserController,UserModel) {
 
         function register(expressApp){
-            expressApp.get('/logout', function(req, res){
+            expressApp.delete('/sign-out', function(req, res){
                 // destroy the user's session to log them out
                 // will be re-created next request
                 req.session.destroy(function(){
@@ -18,7 +18,7 @@ define(['controllers/user','models/user'],
 //                res.render('login',{title: 'Login'});
 //            });
 
-            expressApp.post('/login', function(req, res){
+            expressApp.post('/sign-in', function(req, res){
                 UserController.authenticate(req.body.username, req.body.password, function(err, user){
                     if (user) {
                         // Regenerate session when signing in

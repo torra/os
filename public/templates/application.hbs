@@ -1,0 +1,15 @@
+<div class="navbar">
+    <div class="navbar-inner">
+        <a class="brand" href="#">open sourcerer</a>
+        <form class="navbar-form pull-right">
+            {{view Ember.TextField
+                valueBinding="username"}}
+            {{view Ember.TextField
+                type="password"
+                valueBinding="password"}}
+            <button class="btn btn-primary" {{action "login"}}>Log In</button>
+        </form>
+    </div>
+</div>
+
+{{outlet}}
