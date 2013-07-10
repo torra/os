@@ -99,6 +99,8 @@ App.UserCreateController = Em.Controller.extend({
         }).done(function(data){
             if(data.status !== 0) {
                 self.set('errorMessage',data.message);
+            } else {
+                self.transitionToRoute('user.index',Em.Object.create(data));
             }
         }).fail(function(jqxhr, status, errorMessage){
             self.set('errorMessage',errorMessage);
