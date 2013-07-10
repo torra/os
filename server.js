@@ -5,7 +5,7 @@ requirejs.config({
     nodeRequire: require
 });
 
-requirejs(['express','mongoose','less-middleware','routes/index','routes/user'],
+requirejs(['express','mongoose','less-middleware','routes/index','routes/UserRoutes'],
     function(express,mongoose,less_middleware,index,UserRoutes){
         var app = express();
 // config

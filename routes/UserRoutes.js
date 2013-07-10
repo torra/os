@@ -59,9 +59,15 @@ define(['controllers/user','models/user'],
                 UserController.createUser(req.body.username, req.body.password, req.body.passwordRepeat, function(error){
                     if(error) {
                         req.session.error = error.message ? error.message : 'Failed to create account!';
-                        res.redirect('createAccount');
+                        res.json({
+                            status: 1,
+                            message: req.session.error
+                        });
                     } else {
-                        res.redirect('login');
+                        res.json({
+                            status: 0
+                        });
+//                        res.redirect('login');
                     }
                 });
             });

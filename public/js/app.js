@@ -81,10 +81,12 @@ App.UserCreateRoute = Em.Route.extend({
 });
 
 App.UserCreateController = Em.Controller.extend({
+    errorMessage: null,
     username: null,
     password1: null,
     password2: null,
     createAccount: function() {
+        var self = this;
         $.ajax({
             url: '/createAccount',
             type: 'POST',
@@ -95,9 +97,11 @@ App.UserCreateController = Em.Controller.extend({
                 passwordRepeat: this.get('password2')
             }
         }).done(function(data){
-            console.log('good');
+            if(data.status !== 0) {
+                self.set('errorMessage',data.message);
+            }
         }).fail(function(jqxhr, status, errorMessage){
-            console.log('bad');
+            self.set('errorMessage',errorMessage);
         });
     }
 });

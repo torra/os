@@ -1,16 +1,19 @@
+{{#if errorMessage}}
+<div class="alert alert-error">{{errorMessage}}</div>
+{{/if}}
 <form>
     <fieldset>
         <label>Username:</label>
         {{view Ember.TextField
-        valueBinding="username"}}
+            valueBinding="username"}}
         <label>Password:</label>
         {{view Ember.TextField
-        type="password"
-        valueBinding="password1"}}
+            type="password"
+            valueBinding="password1"}}
         <label>Repeat:</label>
         {{view Ember.TextField
-        type="password"
-        valueBinding="password2"}}
+            type="password"
+            valueBinding="password2"}}
         <button type="submit" class="btn" {{action "createAccount"}}>Create</button>
     </fieldset>
 </form>
