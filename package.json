@@ -14,5 +14,8 @@
     "less-middleware": "*",
 	"mongoose": "3.6.11",
     "requirejs": "2.1.6"
+  },
+  "devDependencies": {
+    "ember-precompile": "0.2.2"
   }
 }
