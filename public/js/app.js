@@ -6,9 +6,8 @@ App.Auth = Ember.Auth.create({
 });
 
 App.Router.map(function() {
-    this.resource('user',function(){
+    this.resource('user',{path: 'user/:username'},function(){
         this.route('create');
-        this.route('index',{ path: '/:username' });
     });
 });
 
@@ -36,7 +35,7 @@ App.ApplicationController = Em.Controller.extend({
                 alert('login failed!');
             }
             else {
-                self.transitionToRoute('user.index',Em.Object.create(data));
+                self.transitionToRoute('user',Em.Object.create(data));
             }
         }).fail(function(jqxhr,status,message){
             alert('login failed!');
@@ -56,8 +55,8 @@ App.IndexController = Em.Controller.extend({
 //    }
 //});
 
-App.UserIndexRoute = Em.Route.extend({
-    setupController: function(model,controller) {
+App.UserRoute = Em.Route.extend({
+    setupController: function(controller,model) {
         $.getJSON('https://api.github.com/users/' + model.get('github_name') + '/repos')
             .done(function(data){
                 controller.set('github_repos',Em.A(data.map(function(object){
@@ -71,8 +70,16 @@ App.UserIndexRoute = Em.Route.extend({
             });
     },
 
-    authenticateGithub: function() {
-        console.log('hi');
+    serialize: function(model) {
+        return {username: model.get('username')};
+    }
+});
+
+App.User = Em.Object.extend({
+    username: null,
+
+    find: function(username) {
+        console.log(username);
     }
 });
 
