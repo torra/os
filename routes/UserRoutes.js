@@ -2,8 +2,8 @@
 /*
  * GET users listing.
  */
-define(['controllers/user','models/user'],
-    function(UserController,UserModel) {
+define(['crypto','controllers/user','models/user'],
+    function(crypto,UserController,UserModel) {
 
         function register(expressApp){
             expressApp.delete('/sign-out', function(req, res){
@@ -28,13 +28,12 @@ define(['controllers/user','models/user'],
                             // in the session store to be retrieved,
                             // or in this case the entire user object
                             req.session.user = user;
-//                            req.session.success = 'Authenticated as ' + user.name
-//                                + ' click to <a href="/logout">logout</a>. '
-//                                + ' You may now access <a href="/profile">/profile</a>.';
-//                            res.redirect('profile/' + user.name);
+
+                            var token = crypto.createHash('md5').update(user.toString() + (new Date()).toString()).digest('hex');
                             res.json({
                                 status: 0,
                                 username: user.name,
+                                token: token,
                                 github_name: user.github_name
                             });
                         });
