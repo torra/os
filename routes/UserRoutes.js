@@ -30,8 +30,7 @@ define(['crypto','controllers/user','models/user'],
                             req.session.user = user;
 
                             var token = crypto.createHash('md5').update(user.toString() + (new Date()).toString()).digest('hex');
-                            res.json({
-                                status: 0,
+                            res.json(200,{
                                 username: user.name,
                                 token: token,
                                 github_name: user.github_name
@@ -42,9 +41,8 @@ define(['crypto','controllers/user','models/user'],
 //                            + ' username and password.'
 //                            + ' (use "dave" and "foobar")';
 //                        res.redirect('login');
-                        res.json({
-                            status: 1,
-                            message: 'Authentication failed'
+                        res.json(403,{
+                            message: 'Bad user name or password'
                         });
                     }
                 });
