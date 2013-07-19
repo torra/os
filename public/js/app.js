@@ -31,12 +31,7 @@ App.ApplicationController = Em.Controller.extend({
                 password: this.get('password')
             }
         }).done(function(data){
-            if(data.status !== 0) {
-                alert('login failed!');
-            }
-            else {
-                self.transitionToRoute('user',Em.Object.create(data));
-            }
+            self.transitionToRoute('user',Em.Object.create(data));
         }).fail(function(jqxhr,status,message){
             alert('login failed!');
         });
