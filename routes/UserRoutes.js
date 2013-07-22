@@ -19,33 +19,40 @@ define(['crypto','controllers/user','models/user'],
 //            });
 
             expressApp.post('/sign-in', function(req, res){
-                UserController.authenticate(req.body.username, req.body.password, function(err, user){
-                    if (user) {
-                        // Regenerate session when signing in
-                        // to prevent fixation
-                        req.session.regenerate(function(){
-                            // Store the user's primary key
-                            // in the session store to be retrieved,
-                            // or in this case the entire user object
-                            req.session.user = user;
+                if(req.body.username && req.body.password) {
+                    UserController.authenticate(req.body.username, req.body.password, function(err, user){
+                        if (user) {
+                            // Regenerate session when signing in
+                            // to prevent fixation
+                            req.session.regenerate(function(){
+                                // Store the user's primary key
+                                // in the session store to be retrieved,
+                                // or in this case the entire user object
+                                req.session.user = user;
 
-                            var token = crypto.createHash('md5').update(user.toString() + (new Date()).toString()).digest('hex');
-                            res.json(200,{
-                                username: user.name,
-                                token: token,
-                                github_name: user.github_name
+                                var token = crypto.createHash('md5').update(user.toString() + (new Date()).toString()).digest('hex');
+                                res.json(200,{
+                                    username: user.name,
+                                    token: token,
+                                    github_name: user.github_name
+                                });
                             });
-                        });
-                    } else {
-//                        req.session.error = 'Authentication failed, please check your '
-//                            + ' username and password.'
-//                            + ' (use "dave" and "foobar")';
-//                        res.redirect('login');
-                        res.json(403,{
-                            message: 'Bad user name or password'
-                        });
-                    }
-                });
+                        } else {
+    //                        req.session.error = 'Authentication failed, please check your '
+    //                            + ' username and password.'
+    //                            + ' (use "dave" and "foobar")';
+    //                        res.redirect('login');
+                            res.json(403,{
+                                message: 'Bad user name or password'
+                            });
+                        }
+                    });
+                } else {
+                    //TODO better error code
+                    res.json(403,{
+                        message: 'Please supply a user name and password'
+                    });
+                }
             });
 
             expressApp.get('/createAccount', function(req, res){

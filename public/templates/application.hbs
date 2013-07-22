@@ -1,14 +1,20 @@
 <div class="navbar">
     <div class="navbar-inner">
         <a class="brand" href="#">open sourcerer</a>
-        <form class="navbar-form pull-right">
-            {{view Ember.TextField
+        {{#if App.AuthManager.isAuthenticated}}
+            <form class="navbar-form pull-right">
+                <button class="btn btn-primary" {{action "logout"}}>Log Out</button>
+            </form>
+        {{else}}
+            <form class="navbar-form pull-right">
+                {{view Ember.TextField
                 valueBinding="username"}}
-            {{view Ember.TextField
+                {{view Ember.TextField
                 type="password"
                 valueBinding="password"}}
-            <button class="btn btn-primary" {{action "login"}}>Log In</button>
-        </form>
+                <button class="btn btn-primary" {{action "login"}}>Log In</button>
+            </form>
+        {{/if}}
     </div>
 </div>
 

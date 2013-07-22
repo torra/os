@@ -1,9 +1,38 @@
 App = Ember.Application.create();
 
-App.Auth = Ember.Auth.create({
-    signInEndPoint: '/sign-in',
-    signOutEndPoint: '/sign-out'
+//App.Auth = Ember.Auth.create({
+//    signInEndPoint: '/sign-in',
+//    signOutEndPoint: '/sign-out'
+//});
+
+AuthenticationManager = Em.Object.extend({
+    login: function(username, password, controller) {
+        var self = this;
+        $.ajax({
+            url: '/sign-in',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                username: username,
+                password: password
+            }
+        }).done(function(data){
+            self.set('token',data['token']);
+            controller.transitionToRoute('user',Em.Object.create(data));
+        }).fail(function(jqxhr,status,message){
+            alert('login failed!');
+        });
+    },
+    logout: function() {
+
+    },
+    token: null,
+    isAuthenticated: function(){
+        return (typeof this.get('token')) === 'string';
+    }.property('token')
 });
+
+App.AuthManager = AuthenticationManager.create();
 
 App.Router.map(function() {
     this.resource('user',{path: 'user/:username'},function(){
@@ -21,20 +50,10 @@ App.ApplicationController = Em.Controller.extend({
     username: null,
     password: null,
     login: function() {
-        var self = this;
-        $.ajax({
-            url: '/sign-in',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                username: this.get('username'),
-                password: this.get('password')
-            }
-        }).done(function(data){
-            self.transitionToRoute('user',Em.Object.create(data));
-        }).fail(function(jqxhr,status,message){
-            alert('login failed!');
-        });
+        App.AuthManager.login(this.get('username'),this.get('password'),this);
+    },
+    logout: function() {
+        App.AuthManager.logout();
     }
 });
 
