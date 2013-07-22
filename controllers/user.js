@@ -2,6 +2,7 @@ define(['models/user','pass'],
     function(User,pass){
         function authenticate(name, password, fn) {
             User.find({ name: name }, function(error,data){
+                //TODO: passing undefined name and password, no error... but it fails trying to read data[0] below and crashes...
                 if(error)
                 {
                     console.log(error);
