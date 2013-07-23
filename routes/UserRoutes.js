@@ -2,8 +2,8 @@
 /*
  * GET users listing.
  */
-define(['crypto','controllers/user','models/user'],
-    function(crypto,UserController,UserModel) {
+define(['controllers/UserController','models/UserModel'],
+    function(UserController,UserModel) {
 
         function register(expressApp){
             expressApp.delete('/sign-out', function(req, res){
@@ -30,10 +30,9 @@ define(['crypto','controllers/user','models/user'],
                                 // or in this case the entire user object
                                 req.session.user = user;
 
-                                var token = crypto.createHash('md5').update(user.toString() + (new Date()).toString()).digest('hex');
                                 res.json(200,{
                                     username: user.name,
-                                    token: token,
+                                    token: user.token,
                                     github_name: user.github_name
                                 });
                             });

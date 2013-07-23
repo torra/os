@@ -1,7 +1,7 @@
-define(['models/user','pass'],
-    function(User,pass){
+define(['models/UserModel','pass','crypto'],
+    function(UserModel,pass,crypto){
         function authenticate(name, password, fn) {
-            User.find({ name: name }, function(error,data){
+            UserModel.find({ name: name }, function(error,data){
                 //TODO: passing undefined name and password, no error... but it fails trying to read data[0] below and crashes...
                 if(error)
                 {
@@ -10,9 +10,16 @@ define(['models/user','pass'],
                 else
                 {
                     pass.hash(password, data[0].salt, function(err, hash){
-                        if (err) return fn(err);
-                        if (hash === data[0].password) return fn(null, data[0]);
-                        fn(new Error('invalid password'));
+                        if (err) fn(err);
+                        else if (hash === data[0].password) {
+                            var user = data[0];
+                            user.token = crypto.createHash('md5').update(user.toString() + (new Date()).toString()).digest('hex');
+                            user.save(function(error,savedUserWithToken){
+                                if(error) fn(error);
+                                else fn(null,savedUserWithToken);
+                            });
+                        }
+                        else fn(new Error('invalid password'));
                     });
                 }
             });
@@ -22,7 +29,7 @@ define(['models/user','pass'],
             if(password !== passwordRepeat) {
                 callback({message: 'Passwords do not match'});
             } else {
-                User.find({ name: userName }, function(error,data){
+                UserModel.find({ name: userName }, function(error,data){
                     if(error) {
                         callback(error);
                     } else if(data.length > 0){
@@ -34,7 +41,7 @@ define(['models/user','pass'],
                                 callback(err);
                             }
 
-                            var user = new User({
+                            var user = new UserModel({
                                 name: userName,
                                 password: hash,
                                 salt: salt
@@ -54,7 +61,7 @@ define(['models/user','pass'],
         }
 
         function updateUserGithubAccount(userName, githubAccount, callback) {
-            User.findOne({ name: userName }, function(error,user){
+            UserModel.findOne({ name: userName }, function(error,user){
                 if(error) {
                     callback(error);
                 } else if(!user) {

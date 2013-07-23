@@ -10,6 +10,8 @@ define(['mongoose'],
 
         UserSchema.add({github_name: {type: String}});
 
+        UserSchema.add({token: {type: String}});
+
         var User = mongoose.model('User', UserSchema);
 
         return User;
