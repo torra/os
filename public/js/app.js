@@ -19,7 +19,7 @@ AuthenticationManager = Em.Object.extend({
         }).done(function(data){
             self.set('token',data['token']);
             self.set('username',username);
-            controller.transitionToRoute('user',Em.Object.create(data));
+            controller.transitionToRoute('user',App.User.create(data));
         }).fail(function(jqxhr,status,message){
             alert('login failed!');
         });
@@ -85,6 +85,20 @@ App.IndexController = Em.Controller.extend({
 //});
 
 App.UserRoute = Em.Route.extend({
+    model: function(params) {
+        var user = Em.ObjectProxy.create();
+        $.ajax({
+            url: 'user/' + params.username,
+            type: 'GET',
+            dataType: 'json'
+        }).done(function(data){
+            user.set('content',Em.Object.create(data));
+        }).fail(function(jqxhr,status,message){
+            throw new Error();
+        });
+        return user;
+    },
+
     setupController: function(controller,model) {
         $.getJSON('https://api.github.com/users/' + model.get('github_name') + '/repos')
             .done(function(data){

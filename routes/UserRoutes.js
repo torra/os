@@ -121,26 +121,27 @@ define(['controllers/UserController','models/UserModel'],
                 });
             });
 
-            expressApp.get('/profile/:user', function(req, res){
+            expressApp.get('/user/:user', restrict, function(req, res){
                 UserModel.find({name: req.params.user}, function(err, data){
                     if(err) {
-                        //TODO
+                        res.json(500);
                     } else if(data.length !== 1) {
-                        //TODO
+                        res.json(404,{
+                            message: 'User not found'
+                        });
                     } else {
-                        res.render('profile',{user: data[0].name, github_user: data[0].github_name,title: 'viewing a user'});
+                        res.json(200,{user: user.name, github_user: user.github_name});
                     }
                 });
             });
 
-            expressApp.put('/profile/:user', function(req, res){
+            expressApp.put('/user/:user', restrict, function(req, res){
                 UserController.updateUserGithubAccount(req.params.user, req.body.github_user, function(error,user){
                     if(error) {
                         req.session.error = error.message ? error.message : 'Failed to update profile!';
                         res.redirect('profile/' + req.params.user);
                     } else {
                         res.json({user: user.name, github_user: user.github_name});
-//                    res.render('profile',{user: req.params.user, github_user: req.body.github_user,title: 'viewing a user'});
                     }
                 });
             });
