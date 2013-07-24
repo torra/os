@@ -18,14 +18,29 @@ AuthenticationManager = Em.Object.extend({
             }
         }).done(function(data){
             self.set('token',data['token']);
+            self.set('username',username);
             controller.transitionToRoute('user',Em.Object.create(data));
         }).fail(function(jqxhr,status,message){
             alert('login failed!');
         });
     },
-    logout: function() {
-
+    logout: function(controller) {
+        var self = this;
+        $.ajax({
+            url: '/sign-out',
+            type: 'DELETE',
+            dataType: 'json',
+            data: {
+                username: self.get('username')
+            }
+        }).done(function(data){
+            self.set('token',null);
+            controller.transitionToRoute('index');
+        }).fail(function(jqxhr,status,message){
+            alert('login failed!');
+        });
     },
+    username: null,
     token: null,
     isAuthenticated: function(){
         return (typeof this.get('token')) === 'string';
@@ -53,7 +68,7 @@ App.ApplicationController = Em.Controller.extend({
         App.AuthManager.login(this.get('username'),this.get('password'),this);
     },
     logout: function() {
-        App.AuthManager.logout();
+        App.AuthManager.logout(this);
     }
 });
 

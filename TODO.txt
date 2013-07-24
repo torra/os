@@ -1,0 +1,5 @@
+TODO
+----
+-review how i'm storing tokens. does storing it with the user really make sense?
+-write tests!!! its time
+-finish token checking work

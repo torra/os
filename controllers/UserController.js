@@ -71,8 +71,42 @@ define(['models/UserModel','pass','crypto'],
                     user.save(function(err, saved) {
                         if(err) {
                             callback(err);
+                        } else {
+                            callback(null,saved);
                         }
-                        callback(null,saved);
+                    });
+                }
+            });
+        }
+
+        function checkToken(userName, token, callback) {
+            UserModel.findOne({ name: userName}, function(error,user){
+                if(error) {
+                    callback(error);
+                } else if(!user) {
+                    callback({message: 'User not found'});
+                } else if(token === user.token) {
+                    callback();
+                } else {
+                    callback({message: 'Invalid token'});
+                }
+            });
+        }
+
+        function deleteToken(userName, callback) {
+            UserModel.findOne({ name: userName}, function(error,user){
+                if(error) {
+                    callback(error);
+                } else if(!user) {
+                    callback({message: 'User not found'});
+                } else {
+                    user.token = null;
+                    user.save(function(err, saved){
+                        if(err) {
+                            callback(err);
+                        } else {
+                            callback(null);
+                        }
                     });
                 }
             });
@@ -81,7 +115,9 @@ define(['models/UserModel','pass','crypto'],
         return {
             authenticate: authenticate,
             createUser: createUser,
-            updateUserGithubAccount: updateUserGithubAccount
+            updateUserGithubAccount: updateUserGithubAccount,
+            checkToken: checkToken,
+            deleteToken: deleteToken
         }
     }
 );

@@ -5,18 +5,35 @@
 define(['controllers/UserController','models/UserModel'],
     function(UserController,UserModel) {
 
+        function restrict(req, res, next) {
+            UserController.checkToken(req.username, req.token, function(err){
+                if(err) {
+                    res.json(403,{
+                        message: 'Access denied'
+                    });
+                } else {
+                    next();
+                }
+            });
+        }
+
         function register(expressApp){
             expressApp.delete('/sign-out', function(req, res){
                 // destroy the user's session to log them out
                 // will be re-created next request
-                req.session.destroy(function(){
-                    res.redirect('/');
+//                req.session.destroy(function(){
+//                    res.redirect('/');
+//                });
+                UserController.deleteToken(req.body.username,function(error){
+                    if(error) {
+                        res.json(500,{
+                            message: 'There was a problem signing out'
+                        });
+                    } else {
+                        res.json(200);
+                    }
                 });
             });
-
-//            expressApp.get('/login', function(req, res){
-//                res.render('login',{title: 'Login'});
-//            });
 
             expressApp.post('/sign-in', function(req, res){
                 if(req.body.username && req.body.password) {
