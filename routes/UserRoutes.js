@@ -145,6 +145,10 @@ define(['controllers/UserController','models/UserModel'],
                     }
                 });
             });
+
+            expressApp.get('/user/:user/authenticateGithub', restrict, function(req, res){
+
+            });
         }
 
         return {

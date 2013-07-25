@@ -84,9 +84,17 @@ App.IndexController = Em.Controller.extend({
 //    }
 //});
 
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 App.UserRoute = Em.Route.extend({
     model: function(params) {
-        var user = Em.ObjectProxy.create();
+        var user = Em.ObjectProxy.create({isLoaded: false}),
+            self = this;
         $.ajax({
             url: 'user/' + params.username,
             type: 'GET',
@@ -94,23 +102,50 @@ App.UserRoute = Em.Route.extend({
         }).done(function(data){
             user.set('content',Em.Object.create(data));
         }).fail(function(jqxhr,status,message){
-            throw new Error();
+            if(jqxhr.status === 403) {
+                alert('please log in to view this page');
+                self.controllerFor('user').transitionToRoute('index');
+            } else {
+                alert('uh oh');
+            }
         });
         return user;
     },
 
     setupController: function(controller,model) {
-        $.getJSON('https://api.github.com/users/' + model.get('github_name') + '/repos')
-            .done(function(data){
-                controller.set('github_repos',Em.A(data.map(function(object){
-                    return Em.Object.create({
-                        full_name: object.full_name,
-                        forks_count: object.forks
-                    });
-                })));
+        var code = getParameterByName('code');
+        if(code.length > 0) {
+            $.ajax({
+                url: 'https://github.com/login/oauth/access_token',
+                type: 'POST',
+                dataType: 'jsonp',
+                data: {
+                    code: code,
+                    client_id: '15b1f1adfd2012c0ebe0',
+                    client_secret: '6808cd2405c5dc8d9b9508a0699c67f627f45647'
+                }
+            }).done(function(data){
+                    console.log(data);
             }).fail(function(jqxhr, status, errorMessage){
-                controller.set('errorMessage','unable to find github repos for user ' + model.get('github_name'));
+                    console.log(jqhxr);
             });
+        }
+        if(model.get('isLoaded')) {
+            $.getJSON('https://api.github.com/users/' + model.get('github_name') + '/repos')
+                .done(function(data){
+                    controller.set('github_repos',Em.A(data.map(function(object){
+                        return Em.Object.create({
+                            full_name: object.full_name,
+                            forks_count: object.forks
+                        });
+                    })));
+                }).fail(function(jqxhr, status, errorMessage){
+                    controller.set('errorMessage','unable to find github repos for user ' + model.get('github_name'));
+                });
+        }
+        else {
+            //TODO: add observer for isLoaded and do the github stuff
+        }
     },
 
     serialize: function(model) {
@@ -160,5 +195,8 @@ App.UserCreateController = Em.Controller.extend({
 
 App.UserIndexController = Em.Controller.extend({
     errorMessage: null,
-    github_repos: null
+    github_repos: null,
+    authenticateGithub: function(){
+
+    }
 });
