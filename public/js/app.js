@@ -19,6 +19,8 @@ AuthenticationManager = Em.Object.extend({
         }).done(function(data){
             self.set('token',data['token']);
             self.set('username',username);
+            document.cookie = 'os_auth_cookie=' + data['token'];
+            document.cookie = 'os_auth_user=' + username;
             controller.transitionToRoute('user',App.User.create(data));
         }).fail(function(jqxhr,status,message){
             alert('login failed!');
@@ -35,6 +37,9 @@ AuthenticationManager = Em.Object.extend({
             }
         }).done(function(data){
             self.set('token',null);
+            self.set('username',null);
+            document.cookie = 'os_auth_cookie=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            document.cookie = 'os_auth_user=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
             controller.transitionToRoute('index');
         }).fail(function(jqxhr,status,message){
             alert('login failed!');
@@ -48,6 +53,12 @@ AuthenticationManager = Em.Object.extend({
 });
 
 App.AuthManager = AuthenticationManager.create();
+
+if(document.cookie) {
+    var cookies = document.cookie.split(';');
+    App.AuthManager.set('token',cookies[0].split('=')[1]);
+    App.AuthManager.set('username',cookies[1].split('=')[1]);
+}
 
 App.Router.map(function() {
     this.resource('user',{path: 'user/:username'},function(){
@@ -98,7 +109,11 @@ App.UserRoute = Em.Route.extend({
         $.ajax({
             url: 'user/' + params.username,
             type: 'GET',
-            dataType: 'json'
+            dataType: 'json',
+            headers: {
+
+                'Authorization': 'user=' + params.username + ';token=' + App.AuthManager.get('token')
+            }
         }).done(function(data){
             user.set('content',Em.Object.create(data));
         }).fail(function(jqxhr,status,message){

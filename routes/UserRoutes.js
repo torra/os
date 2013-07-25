@@ -6,7 +6,8 @@ define(['controllers/UserController','models/UserModel'],
     function(UserController,UserModel) {
 
         function restrict(req, res, next) {
-            UserController.checkToken(req.username, req.token, function(err){
+            var authHeader = req.headers.authorization.split(';');
+            UserController.checkToken(authHeader[0].split('=')[1], authHeader[1].split('=')[1], function(err){
                 if(err) {
                     res.json(403,{
                         message: 'Access denied'
@@ -130,7 +131,7 @@ define(['controllers/UserController','models/UserModel'],
                             message: 'User not found'
                         });
                     } else {
-                        res.json(200,{user: user.name, github_user: user.github_name});
+                        res.json(200,{user: data[0].name, github_user: data[0].github_name});
                     }
                 });
             });
