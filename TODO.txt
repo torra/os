@@ -3,10 +3,10 @@ TODO
 -review how i'm storing tokens. does storing it with the user really make sense?
 -write tests!!! its time
 -finish token checking work
-
--github redirects
+-save github token!
 
 front end
 -handle loading user profile from url!
     -persist token in cookie so i can refresh the page...
 -find a better way to transition routes from a router...
+-figure out why github bindings aren't showing up in ember app...

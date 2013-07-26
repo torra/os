@@ -1,7 +1,8 @@
 <div id="error_message">{{errorMessage}}</div>
-<h1>{{username}}</h1>
-{{#if github_name}}
-    <div>github repos for "{{github_name}}"</div>
+<h1>{{App.AuthManager.username}}</h1>
+<h2>{{github_user}}</h2>
+{{#if github_user}}
+    <div>github repos for "{{github_user}}"</div>
     <ul>
         {{#each repo in github_repos}}
             <li>{{repo.full_name}}, {{repo.forks_count}} forks</li>

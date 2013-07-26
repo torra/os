@@ -2,12 +2,21 @@
 /*
  * GET users listing.
  */
-define(['controllers/UserController','models/UserModel'],
-    function(UserController,UserModel) {
+define(['request','controllers/UserController','models/UserModel'],
+    function(RequestModule,UserController,UserModel) {
 
         function restrict(req, res, next) {
-            var authHeader = req.headers.authorization.split(';');
-            UserController.checkToken(authHeader[0].split('=')[1], authHeader[1].split('=')[1], function(err){
+            var username,
+                token;
+            if(req.headers.authorization) {
+                var credentials = req.headers.authorization.split(';');
+                username = credentials[0].split('=')[1];
+                token = credentials[1].split('=')[1];
+            } else {
+                username = req.cookies['os_auth_user'];
+                token = req.cookies['os_auth_token'];
+            }
+            UserController.checkToken(username, token, function(err){
                 if(err) {
                     res.json(403,{
                         message: 'Access denied'
@@ -148,7 +157,28 @@ define(['controllers/UserController','models/UserModel'],
             });
 
             expressApp.get('/user/:user/authenticateGithub', restrict, function(req, res){
+                //TODO: use github `state` in the redirect!
+                res.redirect(302,'https://github.com/login/oauth/authorize?client_id=15b1f1adfd2012c0ebe0&redirect_uri='
+                    + encodeURIComponent(req.headers.referer + 'user/' + req.params.user + '/confirmGithub'));
+            });
 
+            expressApp.get('/user/:user/confirmGithub', restrict, function(req, res){
+                RequestModule.post('https://github.com/login/oauth/access_token',
+                    {form: {client_id: '15b1f1adfd2012c0ebe0', client_secret: '6808cd2405c5dc8d9b9508a0699c67f627f45647', code: req.query.code}},
+                    function(error, response, body){
+                        if(!error && response.statusCode === 200) {
+                            var token = body.split('&')[0].split('=')[1];
+                            RequestModule.get('https://api.github.com/user?access_token=' + token,function(error, response, body){
+                                if(!error && response.statusCode === 200) {
+                                    var responseJson = JSON.parse(body);
+                                    console.log(responseJson);
+                                    UserController.updateUserGithubAccount(req.params.user,responseJson.login,function(error, user){
+                                        res.redirect(302,'/#/user/' + req.params.user);
+                                    });
+                                }
+                            });
+                        }
+                    });
             });
         }
 

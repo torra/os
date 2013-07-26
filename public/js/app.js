@@ -19,7 +19,7 @@ AuthenticationManager = Em.Object.extend({
         }).done(function(data){
             self.set('token',data['token']);
             self.set('username',username);
-            document.cookie = 'os_auth_cookie=' + data['token'];
+            document.cookie = 'os_auth_token=' + data['token'];
             document.cookie = 'os_auth_user=' + username;
             controller.transitionToRoute('user',App.User.create(data));
         }).fail(function(jqxhr,status,message){
@@ -38,7 +38,7 @@ AuthenticationManager = Em.Object.extend({
         }).done(function(data){
             self.set('token',null);
             self.set('username',null);
-            document.cookie = 'os_auth_cookie=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            document.cookie = 'os_auth_token=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
             document.cookie = 'os_auth_user=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
             controller.transitionToRoute('index');
         }).fail(function(jqxhr,status,message){
@@ -112,10 +112,11 @@ App.UserRoute = Em.Route.extend({
             dataType: 'json',
             headers: {
 
-                'Authorization': 'user=' + params.username + ';token=' + App.AuthManager.get('token')
+                'Authorization': 'user=' + App.AuthManager.get('username') + ';token=' + App.AuthManager.get('token')
             }
         }).done(function(data){
             user.set('content',Em.Object.create(data));
+            user.set('isLoaded',true);
         }).fail(function(jqxhr,status,message){
             if(jqxhr.status === 403) {
                 alert('please log in to view this page');
@@ -128,25 +129,8 @@ App.UserRoute = Em.Route.extend({
     },
 
     setupController: function(controller,model) {
-        var code = getParameterByName('code');
-        if(code.length > 0) {
-            $.ajax({
-                url: 'https://github.com/login/oauth/access_token',
-                type: 'POST',
-                dataType: 'jsonp',
-                data: {
-                    code: code,
-                    client_id: '15b1f1adfd2012c0ebe0',
-                    client_secret: '6808cd2405c5dc8d9b9508a0699c67f627f45647'
-                }
-            }).done(function(data){
-                    console.log(data);
-            }).fail(function(jqxhr, status, errorMessage){
-                    console.log(jqhxr);
-            });
-        }
-        if(model.get('isLoaded')) {
-            $.getJSON('https://api.github.com/users/' + model.get('github_name') + '/repos')
+        function getGithubStats() {
+            $.getJSON('https://api.github.com/users/' + model.get('github_user') + '/repos')
                 .done(function(data){
                     controller.set('github_repos',Em.A(data.map(function(object){
                         return Em.Object.create({
@@ -158,8 +142,16 @@ App.UserRoute = Em.Route.extend({
                     controller.set('errorMessage','unable to find github repos for user ' + model.get('github_name'));
                 });
         }
+        if(model.get('isLoaded')) {
+            getGithubStats();
+        }
         else {
-            //TODO: add observer for isLoaded and do the github stuff
+            model.addObserver('isLoaded',function onLoaded(){
+                if(model.get('isLoaded')) {
+                    getGithubStats();
+                    model.removeObserver('isLoaded',onLoaded);
+                }
+            });
         }
     },
 
@@ -210,8 +202,9 @@ App.UserCreateController = Em.Controller.extend({
 
 App.UserIndexController = Em.Controller.extend({
     errorMessage: null,
+    github_user: 'torra',
     github_repos: null,
     authenticateGithub: function(){
-
+        window.location = 'http://localhost:5000/user/' + App.AuthManager.get('username') + '/authenticateGithub';
     }
 });
