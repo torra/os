@@ -95,12 +95,12 @@ App.IndexController = Em.Controller.extend({
 //    }
 //});
 
-function getParameterByName(name) {
-    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(location.search);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-}
+//function getParameterByName(name) {
+//    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+//    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+//        results = regex.exec(location.search);
+//    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+//}
 
 App.UserRoute = Em.Route.extend({
     model: function(params) {
@@ -115,19 +115,28 @@ App.UserRoute = Em.Route.extend({
                 'Authorization': 'user=' + App.AuthManager.get('username') + ';token=' + App.AuthManager.get('token')
             }
         }).done(function(data){
-            user.set('content',Em.Object.create(data));
-            user.set('isLoaded',true);
-        }).fail(function(jqxhr,status,message){
-            if(jqxhr.status === 403) {
-                alert('please log in to view this page');
-                self.controllerFor('user').transitionToRoute('index');
-            } else {
-                alert('uh oh');
-            }
-        });
+                user.set('content',Em.Object.create(data));
+                user.set('isLoaded',true);
+            }).fail(function(jqxhr,status,message){
+                if(jqxhr.status === 403) {
+                    alert('please log in to view this page');
+                    self.controllerFor('user').transitionToRoute('index');
+                } else {
+                    alert('uh oh');
+                }
+            });
         return user;
     },
 
+    serialize: function(model) {
+        return {username: model.get('username')};
+    }
+});
+
+App.UserIndexRoute = Em.Route.extend({
+    model: function() {
+        return this.modelFor('user');
+    },
     setupController: function(controller,model) {
         function getGithubStats() {
             $.getJSON('https://api.github.com/users/' + model.get('github_user') + '/repos')
@@ -148,15 +157,12 @@ App.UserRoute = Em.Route.extend({
         else {
             model.addObserver('isLoaded',function onLoaded(){
                 if(model.get('isLoaded')) {
+                    controller.set('github_user',model.get('github_user'));
                     getGithubStats();
                     model.removeObserver('isLoaded',onLoaded);
                 }
             });
         }
-    },
-
-    serialize: function(model) {
-        return {username: model.get('username')};
     }
 });
 
@@ -202,7 +208,7 @@ App.UserCreateController = Em.Controller.extend({
 
 App.UserIndexController = Em.Controller.extend({
     errorMessage: null,
-    github_user: 'torra',
+    github_user: null,
     github_repos: null,
     authenticateGithub: function(){
         window.location = 'http://localhost:5000/user/' + App.AuthManager.get('username') + '/authenticateGithub';
