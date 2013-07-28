@@ -107,11 +107,7 @@ define(['request','controllers/UserController','models/UserModel'],
 //                                + ' click to <a href="/logout">logout</a>. '
 //                                + ' You may now access <a href="/profile">/profile</a>.';
 //                            res.redirect('profile/' + user.name);
-                                    res.json({
-                                        status: 0,
-                                        username: user.name,
-                                        github_name: user.github_name
-                                    });
+                                    res.json(200,{});
                                 });
                             } else {
 //                        req.session.error = 'Authentication failed, please check your '
@@ -123,9 +119,6 @@ define(['request','controllers/UserController','models/UserModel'],
                                     message: 'Authentication failed'
                                 });
                             }
-                        });
-                        res.json({
-                            status: 0
                         });
                     }
                 });

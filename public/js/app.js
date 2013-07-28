@@ -61,9 +61,10 @@ if(document.cookie) {
 }
 
 App.Router.map(function() {
-    this.resource('user',{path: 'user/:username'},function(){
+    this.resource('users',function(){
         this.route('create');
     });
+    this.resource('user',{path: 'user/:username'});
 });
 
 //App.IndexRoute = Ember.Route.extend({
@@ -85,7 +86,7 @@ App.ApplicationController = Em.Controller.extend({
 
 App.IndexController = Em.Controller.extend({
     createAccount: function() {
-        this.transitionToRoute('user.create');
+        this.transitionToRoute('users.create');
     }
 });
 
@@ -127,16 +128,6 @@ App.UserRoute = Em.Route.extend({
             });
         return user;
     },
-
-    serialize: function(model) {
-        return {username: model.get('username')};
-    }
-});
-
-App.UserIndexRoute = Em.Route.extend({
-    model: function() {
-        return this.modelFor('user');
-    },
     setupController: function(controller,model) {
         function getGithubStats() {
             $.getJSON('https://api.github.com/users/' + model.get('github_user') + '/repos')
@@ -163,6 +154,10 @@ App.UserIndexRoute = Em.Route.extend({
                 }
             });
         }
+    },
+
+    serialize: function(model) {
+        return {username: model.get('username')};
     }
 });
 
@@ -174,11 +169,11 @@ App.User = Em.Object.extend({
     }
 });
 
-App.UserCreateRoute = Em.Route.extend({
+App.UsersCreateRoute = Em.Route.extend({
 
 });
 
-App.UserCreateController = Em.Controller.extend({
+App.UsersCreateController = Em.Controller.extend({
     errorMessage: null,
     username: null,
     password1: null,
@@ -195,18 +190,14 @@ App.UserCreateController = Em.Controller.extend({
                 passwordRepeat: this.get('password2')
             }
         }).done(function(data){
-            if(data.status !== 0) {
-                self.set('errorMessage',data.message);
-            } else {
-                self.transitionToRoute('user.index',Em.Object.create(data));
-            }
+                App.AuthManager.login(self.get('username'),self.get('password1'),self);
         }).fail(function(jqxhr, status, errorMessage){
             self.set('errorMessage',errorMessage);
         });
     }
 });
 
-App.UserIndexController = Em.Controller.extend({
+App.UserController = Em.Controller.extend({
     errorMessage: null,
     github_user: null,
     github_repos: null,

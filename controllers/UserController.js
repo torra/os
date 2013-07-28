@@ -47,13 +47,13 @@ define(['models/UserModel','pass','crypto'],
                                 salt: salt
                             });
                             user.save(function (err, user) {
-                                if (err)
-                                {
+                                if (err) {
                                     console.log(err);
                                     callback(err);
+                                } else {
+                                    callback();
                                 }
                             });
-                            callback();
                         });
                     }
                 });
