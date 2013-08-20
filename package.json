@@ -9,14 +9,12 @@
     "node": "0.10.11"
   },
   "dependencies": {
+    "ember-precompile": "0.2.2",
     "express": "3.1.0",
     "ejs": "*",
     "less-middleware": "*",
 	"mongoose": "3.6.11",
     "requirejs": "2.1.6",
     "request": "2.25.0"
-  },
-  "devDependencies": {
-    "ember-precompile": "0.2.2"
   }
 }

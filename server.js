@@ -5,10 +5,27 @@ requirejs.config({
     nodeRequire: require
 });
 
-requirejs(['express','mongoose','less-middleware','routes/index','routes/UserRoutes'],
-    function(express,mongoose,less_middleware,index,UserRoutes){
+requirejs(['fs','ember-precompile','express','mongoose','less-middleware','routes/index','routes/UserRoutes'],
+    function(fs,ember_precompile,express,mongoose,less_middleware,index,UserRoutes){
+        //precompile handlebars
+        var inputFiles = [],
+            outputFile = __dirname + '/public/js/templates.js',
+            templatesDir = __dirname + '/public/templates';
+        console.log('Searching "' + templatesDir + '" for handlebars templates...');
+        fs.readdirSync(templatesDir).forEach(function(fileName){
+            inputFiles.push(templatesDir + '/' + fileName);
+        });
+        fs.writeFileSync(outputFile, '', 'utf8');
+        console.log('Compiling handlebars templates...');
+        inputFiles.forEach(function(fileName){
+            console.log('.');
+            fs.appendFileSync(outputFile,ember_precompile(fileName,{baseDir: null}),'utf-8');
+        });
+        console.log('Done!');
+
+        //create app
         var app = express();
-// config
+        // config
 
         var port = process.env.PORT || 5000;
         var mongo_url = process.env.MONGOLAB_URI ||
@@ -18,8 +35,7 @@ requirejs(['express','mongoose','less-middleware','routes/index','routes/UserRou
         app.set('view engine', 'ejs');
         app.set('views', __dirname + '/views');
 
-// db
-
+        // db
         mongoose.connect(mongo_url);
         var db = mongoose.connection;
         db.on('error', console.error.bind(console, 'connection error:'));
@@ -27,7 +43,7 @@ requirejs(['express','mongoose','less-middleware','routes/index','routes/UserRou
             console.log('connected to database at: ' + mongo_url);
         });
 
-// middleware
+        // middleware
         app.use(express.logger());
         app.use(express.bodyParser());
         app.use(express.cookieParser('shhhh, very secret'));
@@ -35,7 +51,7 @@ requirejs(['express','mongoose','less-middleware','routes/index','routes/UserRou
         app.use(less_middleware({ src: __dirname + '/public', compress: true }));
         app.use(express.static(__dirname + '/public'));
 
-// Session-persisted message middleware
+        // Session-persisted message middleware
         app.use(function(req, res, next){
             var err = req.session.error
                 , msg = req.session.success;
